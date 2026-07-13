@@ -69,7 +69,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 @keyframes modalSlide{from{opacity:0;transform:scale(0.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
 /* Map */
-#mapView{height:calc(100vh - 80px);border-radius:16px;overflow:hidden}
+#mapView{height:calc(100vh - 200px);min-height:450px;border-radius:16px;overflow:hidden}
 .leaflet-popup-content-wrapper{background:rgba(10,14,26,0.95)!important;backdrop-filter:blur(20px);border:1px solid rgba(0,240,255,0.2)!important;border-radius:12px!important;color:#e8eef7!important;box-shadow:0 8px 32px rgba(0,0,0,0.4)!important}
 .leaflet-popup-tip{background:rgba(10,14,26,0.95)!important;border:1px solid rgba(0,240,255,0.2)!important}
 .leaflet-container{background:#0a0e1a!important}
@@ -77,6 +77,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 .pin-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.3);transition:all .3s}
 .pin-icon:hover{transform:rotate(-45deg) scale(1.2);z-index:1000}
 .pin-text{transform:rotate(45deg);font-size:13px;font-weight:700;color:#fff}
+.venue-label{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:#e8eef7;background:rgba(10,14,26,0.85);padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);pointer-events:none;backdrop-filter:blur(4px)}
 
 /* Timeline */
 .timeline-container{position:relative}
@@ -99,16 +100,58 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 .fav-active{color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5)}
 
 /* Nav button */
-.nav-btn{padding:8px 20px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;color:var(--text-secondary);border:1px solid transparent}
-.nav-btn:hover{color:var(--text-primary)}
-.nav-btn.active{background:rgba(0,240,255,0.1);border-color:rgba(0,240,255,0.3);color:var(--accent-cyan);box-shadow:0 0 15px rgba(0,240,255,0.1)}
+.nav-btn{padding:8px 20px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;color:var(--text-secondary);border:1px solid transparent;white-space:nowrap}
 
-/* Responsive */
+/* Mobile responsive */
 @media(max-width:768px){
-  .hero-stats{grid-template-columns:repeat(2,1fr)!important}
-  .nav-bar{flex-wrap:wrap;gap:8px}
-  .timeline-line{left:55px}
-  .time-marker{width:45px;font-size:10px}
+  .hero-stats{grid-template-columns:repeat(2,1fr)!important;gap:8px!important}
+  .hero-stats .stat-card{padding:10px 6px!important}
+  .hero-stats .font-orbitron{font-size:1.5rem!important}
+  .hero-stats .text-xs{font-size:10px!important}
+  h1.font-orbitron{font-size:2.5rem!important;letter-spacing:1px!important}
+  .text-lg{font-size:1rem!important}
+  .text-xs.tracking-wider{font-size:9px!important;letter-spacing:1px!important}
+  /* Nav: wrap with full-width sections */
+  .nav-bar{flex-wrap:wrap!important;gap:6px!important}
+  .nav-bar > .flex.items-center:first-child{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-bar > .flex.items-center:first-child::-webkit-scrollbar{display:none}
+  .nav-btn{padding:7px 14px;font-size:13px;flex-shrink:0}
+  /* Search full width on its own line */
+  .nav-bar > .relative{min-width:100%!important;max-width:100%!important;width:100%!important}
+  .search-input{padding:9px 14px 9px 38px;font-size:13px}
+  /* Date filters scrollable */
+  .nav-bar > .flex.items-center:last-child{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-bar > .flex.items-center:last-child::-webkit-scrollbar{display:none}
+  .filter-pill{padding:5px 12px;font-size:12px;flex-shrink:0}
+  /* Track filters scrollable */
+  #trackFilters{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  #trackFilters::-webkit-scrollbar{display:none}
+  .track-chip{flex-shrink:0;padding:5px 10px;font-size:11px}
+  /* Timeline adjustments */
+  .timeline-line{left:50px}
+  .time-marker{width:42px;font-size:10px}
+  /* Map: fixed height for mobile */
+  #mapView{height:60vh!important;min-height:400px;border-radius:12px}
+  /* Modal: full screen on mobile */
+  .modal-overlay{padding:0!important;align-items:flex-end!important}
+  .modal-content{max-width:100%!important;max-height:90vh!important;border-radius:20px 20px 0 0!important;animation:modalSlideUp .35s cubic-bezier(.4,0,.2,1)}
+  @keyframes modalSlideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+  /* Track cards: single column */
+  #tracksContent{grid-template-columns:1fr!important}
+  /* Event detail grid: single column */
+  .modal-content .grid-cols-2{grid-template-columns:1fr!important}
+  /* Section padding */
+  main{padding:12px 12px!important}
+  section.relative{padding:16px 12px 8px!important}
+  nav.sticky{padding:8px 12px!important}
+  /* Section titles */
+  section h2{font-size:1.05rem!important}
+  /* Venue label on map */
+  .venue-label{font-size:10px!important;padding:2px 6px!important}
+}
+@media(max-width:380px){
+  .hero-stats .font-orbitron{font-size:1.25rem!important}
+  .nav-btn{padding:6px 10px;font-size:12px}
 }
 </style>
 </head>
@@ -343,7 +386,7 @@ function renderTimeline() {
 // ===== RENDER: MAP =====
 function renderMap() {
   if(!mapInitialized) {
-    leafletMap = L.map('mapView', {zoomControl:true, attributionControl:false}).setView([31.19, 121.50], 12);
+    leafletMap = L.map('mapView', {zoomControl:true, attributionControl:false, scrollWheelZoom:true}).setView([31.19, 121.50], 12);
 
     // Dark tile layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -358,14 +401,19 @@ function renderMap() {
       venueGroups[e.venue].push(e);
     });
 
+    const allBounds = [];
+
     Object.entries(venueGroups).forEach(([venueName, evts]) => {
       const v = venues[venueName];
       if(!v) return;
+      allBounds.push([v.lat, v.lng]);
 
       const size = Math.min(48, 24 + evts.length * 0.3);
+      // Short venue name for label
+      const shortName = venueName.length > 6 ? venueName.slice(0,5)+'…' : venueName;
       const icon = L.divIcon({
         className:'custom-pin',
-        html:`<div class="pin-icon" style="background:${v.color};width:${size}px;height:${size}px"><span class="pin-text">${evts.length}</span></div>`,
+        html:`<div style="position:relative"><div class="pin-icon" style="background:${v.color};width:${size}px;height:${size}px"><span class="pin-text">${evts.length}</span></div><div class="venue-label">${shortName}</div></div>`,
         iconSize:[size,size], iconAnchor:[size/2,size], popupAnchor:[0,-size]
       });
 
@@ -392,11 +440,13 @@ function renderMap() {
     Object.entries(otherVenueCoords).forEach(([id, coord]) => {
       const event = events.find(e => e.id === parseInt(id));
       if(!event) return;
+      allBounds.push([coord.lat, coord.lng]);
 
       const color = getTrackColor(event.track);
+      const shortName = coord.name.length > 6 ? coord.name.slice(0,5)+'…' : coord.name;
       const icon = L.divIcon({
         className:'custom-pin',
-        html:`<div class="pin-icon" style="background:${color};width:28px;height:28px"><span class="pin-text" style="font-size:10px">1</span></div>`,
+        html:`<div style="position:relative"><div class="pin-icon" style="background:${color};width:28px;height:28px"><span class="pin-text" style="font-size:10px">1</span></div><div class="venue-label">${shortName}</div></div>`,
         iconSize:[28,28], iconAnchor:[14,28], popupAnchor:[0,-28]
       });
 
@@ -412,8 +462,16 @@ function renderMap() {
         </div>
       `, {maxWidth:280});
     });
+
+    // Fit bounds to show all markers
+    if(allBounds.length > 0) {
+      leafletMap.fitBounds(allBounds, {padding:[50,50], maxZoom:14});
+    }
   }
+  // Invalidate size multiple times to ensure proper rendering
   setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 100);
+  setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 300);
+  setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 600);
 }
 
 // ===== RENDER: TRACKS =====
@@ -540,11 +598,11 @@ function showEventDetail(id) {
       <div class="text-sm" style="line-height:1.5">${escapeHtml(e.track_industry)}</div>
     </div>` : ''}
 
-    <div class="flex gap-3">
-      <button onclick="toggleFav(${e.id});showEventDetail(${e.id})" class="flex-1 py-2.5 rounded-xl font-medium text-sm transition-all" style="background:${isFav ? 'rgba(251,191,36,0.12)':'rgba(255,255,255,0.04)'};border:1px solid ${isFav ? 'rgba(251,191,36,0.3)':'rgba(255,255,255,0.08)'};color:${isFav ? '#fbbf24':'var(--text-primary)'};cursor:pointer">
+    <div class="flex gap-3 flex-col sm:flex-row">
+      <button onclick="toggleFav(${e.id});showEventDetail(${e.id})" class="py-2.5 rounded-xl font-medium text-sm transition-all" style="background:${isFav ? 'rgba(251,191,36,0.12)':'rgba(255,255,255,0.04)'};border:1px solid ${isFav ? 'rgba(251,191,36,0.3)':'rgba(255,255,255,0.08)'};color:${isFav ? '#fbbf24':'var(--text-primary)'};cursor:pointer">
         ${isFav ? '★ 已收藏' : '☆ 收藏到日程'}
       </button>
-      ${coords ? `<button onclick="showOnMap(${coords.lat},${coords.lng})" class="flex-1 py-2.5 rounded-xl font-medium text-sm transition-all" style="background:rgba(0,240,255,0.08);border:1px solid rgba(0,240,255,0.25);color:var(--accent-cyan);cursor:pointer">📍 在地图上查看</button>` : ''}
+      ${coords ? `<button onclick="showOnMap(${coords.lat},${coords.lng})" class="py-2.5 rounded-xl font-medium text-sm transition-all" style="background:rgba(0,240,255,0.08);border:1px solid rgba(0,240,255,0.25);color:var(--accent-cyan);cursor:pointer">📍 在地图上查看</button>` : ''}
     </div>
   `;
   document.getElementById('eventModal').classList.add('active');
@@ -557,11 +615,15 @@ function closeModal() {
 function showOnMap(lat,lng) {
   closeModal();
   switchView('map');
+  // Wait for view transition, then invalidate size and fly to location
   setTimeout(() => {
     if(leafletMap) {
-      leafletMap.setView([lat,lng], 15, {animate:true});
+      leafletMap.invalidateSize();
+      setTimeout(() => {
+        leafletMap.flyTo([lat,lng], 15, {duration:0.8});
+      }, 200);
     }
-  }, 300);
+  }, 350);
 }
 
 // ===== FAVORITES =====
@@ -606,7 +668,11 @@ function switchView(viewName) {
   });
   const viewMap = {timeline:'timelineView', map:'mapViewSection', tracks:'tracksView', schedule:'scheduleView'};
   document.getElementById(viewMap[viewName]).classList.add('active');
-  if(viewName === 'map') renderMap();
+  if(viewName === 'map') {
+    renderMap();
+    // Extra invalidateSize after CSS transition completes
+    setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 500);
+  }
   if(viewName === 'tracks') renderTracks();
   if(viewName === 'schedule') renderSchedule();
   if(viewName === 'timeline') renderTimeline();

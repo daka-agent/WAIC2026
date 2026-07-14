@@ -74,7 +74,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 .leaflet-popup-content-wrapper{background:rgba(10,14,26,0.95)!important;backdrop-filter:blur(20px);border:1px solid rgba(0,240,255,0.2)!important;border-radius:12px!important;color:#e8eef7!important;box-shadow:0 8px 32px rgba(0,0,0,0.4)!important}
 .leaflet-popup-tip{background:rgba(10,14,26,0.95)!important;border:1px solid rgba(0,240,255,0.2)!important}
 .leaflet-container{background:#0a0e1a!important}
-.leaflet-tile{transition:none!important}
+.leaflet-tile{opacity:0;transition:opacity .25s ease-in}
+.leaflet-tile-loaded{opacity:1}
 .custom-pin{background:transparent;border:none}
 .pin-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.3);transition:all .3s}
 .pin-icon:hover{transform:rotate(-45deg) scale(1.2);z-index:1000}
@@ -410,20 +411,30 @@ function initMap() {
 
   leafletMap = L.map('mapView', {
     zoomControl: true, attributionControl: false, scrollWheelZoom: true,
-    fadeAnimation: false, zoomAnimation: true, markerZoomAnimation: true
+    fadeAnimation: true, zoomAnimation: true, markerZoomAnimation: true
   }).setView([31.19, 121.50], 12);
 
-  // Dark tile layer with error retry
+  // Fallback base layer (OSM, low opacity) so map is never blank when dark tiles fail
+  const fallbackLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18, subdomains: 'abc', opacity: 0.22, updateWhenIdle: true
+  }).addTo(leafletMap);
+
+  // Dark tile layer with conservative mobile settings
   const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18, subdomains: 'abcd', keepBuffer: 4, updateWhenIdle: false, crossOrigin: true,
-    errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iIzBhMGUxYSIvPjwvc3ZnPg=='
+    maxZoom: 18, subdomains: 'abcd', keepBuffer: 2, updateWhenIdle: true,
+    errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
   }).addTo(leafletMap);
   tileLayer.on('tileerror', function(ev) {
     const tile = ev.tile;
     if(!tile._retry) tile._retry = 0;
     if(tile._retry < 3) {
       tile._retry++;
-      setTimeout(() => { if(tile.src) { const u = tile.src; tile.src = ''; tile.src = u; } }, 500 * tile._retry);
+      setTimeout(() => {
+        if(tile.src) {
+          const sep = tile.src.includes('?') ? '&' : '?';
+          tile.src = tile.src.replace(/[?&]retry=\d+/, '') + sep + 'retry=' + tile._retry;
+        }
+      }, 400 * tile._retry);
     }
   });
   mapInitialized = true;
@@ -509,10 +520,8 @@ function initMap() {
     });
     mapResizeObserver.observe(mapContainer);
 
-  // Multiple invalidateSize calls to ensure proper rendering
-  [100, 300, 600, 1000].forEach(delay => {
-    setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, delay);
-  });
+  // One final invalidateSize after layout settles
+  setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 300);
 }
 
 // ===== RENDER: TRACKS =====

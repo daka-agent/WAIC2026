@@ -58,8 +58,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 .track-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
 /* View transitions */
-.view-section{display:none;animation:fadeIn .4s ease}
-.view-section.active{display:block}
+.view-section{display:none}
+.view-section.active{display:block;animation:fadeIn .4s ease}
+.view-section.no-anim{animation:none!important}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* Modal */
@@ -69,10 +70,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 @keyframes modalSlide{from{opacity:0;transform:scale(0.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
 /* Map */
-#mapView{height:calc(100vh - 200px);min-height:450px;border-radius:16px;overflow:hidden}
+#mapView{height:calc(100vh - 200px);min-height:450px;border-radius:16px;overflow:hidden;z-index:1}
 .leaflet-popup-content-wrapper{background:rgba(10,14,26,0.95)!important;backdrop-filter:blur(20px);border:1px solid rgba(0,240,255,0.2)!important;border-radius:12px!important;color:#e8eef7!important;box-shadow:0 8px 32px rgba(0,0,0,0.4)!important}
 .leaflet-popup-tip{background:rgba(10,14,26,0.95)!important;border:1px solid rgba(0,240,255,0.2)!important}
 .leaflet-container{background:#0a0e1a!important}
+.leaflet-tile{transition:none!important}
 .custom-pin{background:transparent;border:none}
 .pin-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.3);transition:all .3s}
 .pin-icon:hover{transform:rotate(-45deg) scale(1.2);z-index:1000}
@@ -130,8 +132,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
   /* Timeline adjustments */
   .timeline-line{left:50px}
   .time-marker{width:42px;font-size:10px}
-  /* Map: fixed height for mobile */
-  #mapView{height:60vh!important;min-height:400px;border-radius:12px}
+  /* Map: fixed pixel height for mobile to prevent vh resize issues */
+  #mapView{height:500px!important;min-height:500px!important;border-radius:12px}
   /* Modal: full screen on mobile */
   .modal-overlay{padding:0!important;align-items:flex-end!important}
   .modal-content{max-width:100%!important;max-height:90vh!important;border-radius:20px 20px 0 0!important;animation:modalSlideUp .35s cubic-bezier(.4,0,.2,1)}
@@ -384,15 +386,48 @@ function renderTimeline() {
 }
 
 // ===== RENDER: MAP =====
+let mapResizeObserver = null;
+
 function renderMap() {
   if(!mapInitialized) {
-    leafletMap = L.map('mapView', {zoomControl:true, attributionControl:false, scrollWheelZoom:true}).setView([31.19, 121.50], 12);
+    // Delay initialization to ensure container has correct dimensions after display:block
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        initMap();
+      });
+    });
+  } else {
+    if(leafletMap) leafletMap.invalidateSize();
+  }
+}
 
-    // Dark tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18, subdomains:'abcd'
-    }).addTo(leafletMap);
-    mapInitialized = true;
+function initMap() {
+  if(mapInitialized) return;
+  const mapContainer = document.getElementById('mapView');
+  if(!mapContainer || mapContainer.offsetWidth === 0 || mapContainer.offsetHeight === 0) {
+    setTimeout(() => initMap(), 100);
+    return;
+  }
+
+  leafletMap = L.map('mapView', {
+    zoomControl: true, attributionControl: false, scrollWheelZoom: true,
+    fadeAnimation: false, zoomAnimation: true, markerZoomAnimation: true
+  }).setView([31.19, 121.50], 12);
+
+  // Dark tile layer with error retry
+  const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 18, subdomains: 'abcd', keepBuffer: 4, updateWhenIdle: false, crossOrigin: true,
+    errorTileUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iIzBhMGUxYSIvPjwvc3ZnPg=='
+  }).addTo(leafletMap);
+  tileLayer.on('tileerror', function(ev) {
+    const tile = ev.tile;
+    if(!tile._retry) tile._retry = 0;
+    if(tile._retry < 3) {
+      tile._retry++;
+      setTimeout(() => { if(tile.src) { const u = tile.src; tile.src = ''; tile.src = u; } }, 500 * tile._retry);
+    }
+  });
+  mapInitialized = true;
 
     // Add venue markers
     const venueGroups = {};
@@ -467,11 +502,19 @@ function renderMap() {
     if(allBounds.length > 0) {
       leafletMap.fitBounds(allBounds, {padding:[50,50], maxZoom:14});
     }
+
+    // ResizeObserver to catch container size changes (mobile address bar, orientation change, etc.)
+    if(mapResizeObserver) mapResizeObserver.disconnect();
+    mapResizeObserver = new ResizeObserver(() => {
+      if(leafletMap) leafletMap.invalidateSize();
+    });
+    mapResizeObserver.observe(mapContainer);
   }
-  // Invalidate size multiple times to ensure proper rendering
-  setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 100);
-  setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 300);
-  setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 600);
+
+  // Multiple invalidateSize calls to ensure proper rendering
+  [100, 300, 600, 1000].forEach(delay => {
+    setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, delay);
+  });
 }
 
 // ===== RENDER: TRACKS =====
@@ -621,9 +664,17 @@ function showOnMap(lat,lng) {
       leafletMap.invalidateSize();
       setTimeout(() => {
         leafletMap.flyTo([lat,lng], 15, {duration:0.8});
-      }, 200);
+      }, 300);
+    } else {
+      // Map not yet initialized, wait longer
+      setTimeout(() => {
+        if(leafletMap) {
+          leafletMap.invalidateSize();
+          leafletMap.flyTo([lat,lng], 15, {duration:0.8});
+        }
+      }, 500);
     }
-  }, 350);
+  }, 400);
 }
 
 // ===== FAVORITES =====
@@ -664,14 +715,20 @@ function switchView(viewName) {
     btn.classList.toggle('active', btn.dataset.view === viewName);
   });
   document.querySelectorAll('.view-section').forEach(section => {
-    section.classList.remove('active');
+    section.classList.remove('active', 'no-anim');
   });
   const viewMap = {timeline:'timelineView', map:'mapViewSection', tracks:'tracksView', schedule:'scheduleView'};
-  document.getElementById(viewMap[viewName]).classList.add('active');
+  const targetSection = document.getElementById(viewMap[viewName]);
+  
   if(viewName === 'map') {
+    // Disable animation for map view to prevent dimension changes during init
+    targetSection.classList.add('no-anim');
+    targetSection.classList.add('active');
     renderMap();
-    // Extra invalidateSize after CSS transition completes
+    // Extra invalidateSize after layout settles
     setTimeout(() => { if(leafletMap) leafletMap.invalidateSize(); }, 500);
+  } else {
+    targetSection.classList.add('active');
   }
   if(viewName === 'tracks') renderTracks();
   if(viewName === 'schedule') renderSchedule();

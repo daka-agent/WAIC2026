@@ -125,9 +125,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
   .nav-bar > .flex.items-center:last-child{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .nav-bar > .flex.items-center:last-child::-webkit-scrollbar{display:none}
   .filter-pill{padding:5px 12px;font-size:12px;flex-shrink:0}
-  /* Track filters scrollable */
-  #trackFilters{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px}
-  #trackFilters::-webkit-scrollbar{display:none}
+  /* Track filters: wrap naturally, no horizontal scroll */
+  #trackFilters{flex-wrap:wrap!important;overflow:visible!important;gap:6px!important}
   .track-chip{flex-shrink:0;padding:5px 10px;font-size:11px}
   /* Timeline adjustments */
   .timeline-line{left:50px}
@@ -704,7 +703,14 @@ function filterByTrack(trackName) {
     activeTracks.add(trackName);
   }
   updateTrackFilters();
-  switchView('timeline');
+  if(currentView !== 'timeline' && currentView !== 'map') switchView('timeline');
+  else if(currentView === 'timeline') renderTimeline();
+}
+
+function clearTracks() {
+  activeTracks.clear();
+  updateTrackFilters();
+  if(currentView === 'timeline') renderTimeline();
 }
 
 // ===== VIEW SWITCHING =====
@@ -738,6 +744,13 @@ function switchView(viewName) {
 function updateTrackFilters() {
   const container = document.getElementById('trackFilters');
   let html = '';
+  // "全部" chip to clear all filters
+  const allActive = activeTracks.size === 0;
+  html += `<div class="track-chip ${allActive ? 'active' : ''}" style="--chip-color:#00f0ff" onclick="clearTracks()">
+    <span class="track-dot" style="background:#00f0ff;box-shadow:0 0 6px #00f0ff80"></span>
+    <span>全部</span>
+    <span style="opacity:0.6;font-size:10px">${events.length}</span>
+  </div>`;
   Object.entries(tracks).sort((a,b) => a[1].rank - b[1].rank).forEach(([name, info]) => {
     const color = getTrackColor(name);
     const isActive = activeTracks.has(name);

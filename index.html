@@ -74,7 +74,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 .leaflet-popup-content-wrapper{background:rgba(10,14,26,0.95)!important;backdrop-filter:blur(20px);border:1px solid rgba(0,240,255,0.2)!important;border-radius:12px!important;color:#e8eef7!important;box-shadow:0 8px 32px rgba(0,0,0,0.4)!important}
 .leaflet-popup-tip{background:rgba(10,14,26,0.95)!important;border:1px solid rgba(0,240,255,0.2)!important}
 .leaflet-container{background:#0a0e1a!important}
-.leaflet-tile{opacity:0;transition:opacity .25s ease-in}
+.leaflet-tile{opacity:0;transition:opacity .25s ease-in;filter:invert(1) hue-rotate(180deg) brightness(0.55) contrast(1.1) saturate(0.6)!important}
 .leaflet-tile-loaded{opacity:1}
 .custom-pin{background:transparent;border:none}
 .pin-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.3);transition:all .3s}
@@ -414,27 +414,21 @@ function initMap() {
     fadeAnimation: true, zoomAnimation: true, markerZoomAnimation: true
   }).setView([31.19, 121.50], 12);
 
-  // Fallback base layer (OSM, low opacity) so map is never blank when dark tiles fail
-  const fallbackLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18, subdomains: 'abc', opacity: 0.22, updateWhenIdle: true
-  }).addTo(leafletMap);
-
-  // Dark tile layer with conservative mobile settings
-  const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18, subdomains: 'abcd', keepBuffer: 2, updateWhenIdle: true,
+  // Primary base layer: Amap (Gaode) road map - more reliable in mainland China
+  const tileLayer = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+    maxZoom: 18, subdomains: '1234', keepBuffer: 2, updateWhenIdle: true,
     errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
   }).addTo(leafletMap);
+
+  // If Amap tile fails, try OpenStreetMap as a last resort
   tileLayer.on('tileerror', function(ev) {
     const tile = ev.tile;
-    if(!tile._retry) tile._retry = 0;
-    if(tile._retry < 3) {
-      tile._retry++;
-      setTimeout(() => {
-        if(tile.src) {
-          const sep = tile.src.includes('?') ? '&' : '?';
-          tile.src = tile.src.replace(/[?&]retry=\d+/, '') + sep + 'retry=' + tile._retry;
-        }
-      }, 400 * tile._retry);
+    if(!tile || tile._fallbackApplied) return;
+    tile._fallbackApplied = true;
+    const match = tile.src.match(/x=(\d+)&y=(\d+)&z=(\d+)/);
+    if(match) {
+      const [, x, y, z] = match;
+      tile.src = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
     }
   });
   mapInitialized = true;

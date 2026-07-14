@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://vercount.one/js"></script>
+<script defer src="https://events.vercount.one/js"></script>
 <style>
 :root{
   --bg-deep:#060912; --bg-base:#0a0e1a; --bg-card:rgba(15,22,38,0.7);
@@ -86,7 +86,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 /* Visitor counter */
 .counter-widget{border-color:rgba(0,240,255,0.1)!important;transition:all .3s ease}
 .counter-widget:hover{border-color:rgba(0,240,255,0.25)!important;box-shadow:0 0 30px rgba(0,240,255,0.08)}
-#vercount-value-site_pv,#vercount-value-site_uv{transition:opacity .3s ease}
+#vercount_value_site_pv,#vercount_value_site_uv{transition:opacity .3s ease}
 
 /* Timeline */
 .timeline-container{position:relative}
@@ -279,12 +279,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
   <div class="glass inline-flex items-center gap-6 px-6 py-3 rounded-2xl counter-widget">
     <div class="flex items-center gap-2">
       <span class="text-sm" style="color:var(--text-secondary)">总访问量</span>
-      <span class="font-orbitron text-xl font-bold neon-cyan" id="vercount-value-site_pv">···</span>
+      <span class="font-orbitron text-xl font-bold neon-cyan" id="vercount_value_site_pv">···</span>
     </div>
     <div style="width:1px;height:20px;background:rgba(255,255,255,0.1)"></div>
     <div class="flex items-center gap-2">
       <span class="text-sm" style="color:var(--text-secondary)">访客数</span>
-      <span class="font-orbitron text-xl font-bold neon-purple" id="vercount-value-site_uv">···</span>
+      <span class="font-orbitron text-xl font-bold neon-purple" id="vercount_value_site_uv">···</span>
     </div>
   </div>
 </footer>

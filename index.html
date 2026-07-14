@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://vercount.one/js"></script>
 <style>
 :root{
   --bg-deep:#060912; --bg-base:#0a0e1a; --bg-card:rgba(15,22,38,0.7);
@@ -82,6 +83,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
 .pin-text{transform:rotate(45deg);font-size:13px;font-weight:700;color:#fff}
 .venue-label{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:#e8eef7;background:rgba(10,14,26,0.85);padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);pointer-events:none;backdrop-filter:blur(4px)}
 
+/* Visitor counter */
+.counter-widget{border-color:rgba(0,240,255,0.1)!important;transition:all .3s ease}
+.counter-widget:hover{border-color:rgba(0,240,255,0.25)!important;box-shadow:0 0 30px rgba(0,240,255,0.08)}
+#vercount-value-site_pv,#vercount-value-site_uv{transition:opacity .3s ease}
+
 /* Timeline */
 .timeline-container{position:relative}
 .timeline-line{position:absolute;left:70px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,transparent,rgba(0,240,255,0.15),rgba(0,240,255,0.15),transparent)}
@@ -150,6 +156,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
   section h2{font-size:1.05rem!important}
   /* Venue label on map */
   .venue-label{font-size:10px!important;padding:2px 6px!important}
+  /* Counter: compact on mobile */
+  .counter-widget{gap:12px!important;padding:8px 16px!important}
 }
 @media(max-width:380px){
   .hero-stats .font-orbitron{font-size:1.25rem!important}
@@ -265,6 +273,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-deep);color:va
   </section>
 
 </main>
+
+<!-- Visitor Counter Footer -->
+<footer class="relative z-10 px-6 py-6 text-center">
+  <div class="glass inline-flex items-center gap-6 px-6 py-3 rounded-2xl counter-widget">
+    <div class="flex items-center gap-2">
+      <span class="text-sm" style="color:var(--text-secondary)">总访问量</span>
+      <span class="font-orbitron text-xl font-bold neon-cyan" id="vercount-value-site_pv">···</span>
+    </div>
+    <div style="width:1px;height:20px;background:rgba(255,255,255,0.1)"></div>
+    <div class="flex items-center gap-2">
+      <span class="text-sm" style="color:var(--text-secondary)">访客数</span>
+      <span class="font-orbitron text-xl font-bold neon-purple" id="vercount-value-site_uv">···</span>
+    </div>
+  </div>
+</footer>
 
 <!-- Event Detail Modal -->
 <div class="modal-overlay" id="eventModal">
